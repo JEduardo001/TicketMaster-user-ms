@@ -3,6 +3,7 @@ package com.swSoftware.asientos.user_ms.domain.model;
 import com.swSoftware.asientos.user_ms.domain.status.StatusUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder
 @Table(name = "user_table", indexes = {
         @Index(name = "emailIndex", columnList = "email"),
         @Index(name = "nameIndex", columnList = "name")
@@ -32,7 +34,7 @@ public class UserModel {
     private LocalDate birthday;
     @Enumerated(EnumType.STRING)
     private StatusUser status;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "roles_user",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 public record DtoUserUpdate(
@@ -21,6 +22,7 @@ public record DtoUserUpdate(
         String email,
         StatusUser status,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        LocalDate birthday
+        LocalDate birthday,
+        List<Long> idRoles
 ) {
 }
