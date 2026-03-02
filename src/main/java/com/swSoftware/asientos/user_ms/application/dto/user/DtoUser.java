@@ -1,5 +1,6 @@
 package com.swSoftware.asientos.user_ms.application.dto.user;
 
+import com.swSoftware.asientos.user_ms.application.dto.role.DtoRole;
 import com.swSoftware.asientos.user_ms.domain.status.StatusUser;
 import lombok.Builder;
 
@@ -17,7 +18,7 @@ public record DtoUser(
         String email,
         StatusUser status,
         LocalDate birthday,
-        List<Integer> rolesId,
+        List<DtoRole> roles,
         Instant createdAt,
         Instant deleteAt
 ) {

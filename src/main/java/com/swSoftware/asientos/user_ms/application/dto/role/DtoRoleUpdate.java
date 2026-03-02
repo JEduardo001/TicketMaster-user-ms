@@ -4,10 +4,8 @@ import com.swSoftware.asientos.user_ms.domain.status.StatusRole;
 import lombok.Builder;
 
 @Builder
-public record DtoRole(
-        Long id,
+public record DtoRoleUpdate(
         String name,
         StatusRole status
-
 ) {
 }
