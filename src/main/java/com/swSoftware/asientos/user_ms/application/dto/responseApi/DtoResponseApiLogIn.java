@@ -4,7 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record DtoResponseApiLogIn(
-        String message,
         Integer status,
         String idCorrelation,
         String token

@@ -1,20 +1,28 @@
 package com.swSoftware.asientos.user_ms.infrastructure.adapter.input.rest;
 
+import com.swSoftware.asientos.user_ms.application.dto.auth.DtoLogin;
 import com.swSoftware.asientos.user_ms.application.dto.responseApi.DtoResponseApi;
+import com.swSoftware.asientos.user_ms.application.dto.responseApi.DtoResponseApiLogIn;
 import com.swSoftware.asientos.user_ms.application.dto.user.DtoUserRegister;
 import com.swSoftware.asientos.user_ms.application.dto.user.DtoUserUpdate;
 import com.swSoftware.asientos.user_ms.application.usecase.user.GetAllUsersUseCase;
 import com.swSoftware.asientos.user_ms.application.usecase.user.GetUserUseCase;
 import com.swSoftware.asientos.user_ms.application.usecase.user.RegisterUserUseCase;
 import com.swSoftware.asientos.user_ms.application.usecase.user.UpdateUserUseCase;
+import com.swSoftware.asientos.user_ms.infrastructure.config.service.JwtService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -26,6 +34,7 @@ public class UserController {
     private final UpdateUserUseCase updateUserUseCase;
     private final GetAllUsersUseCase getAllUsersUseCase;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
 
     @PostMapping("/register")
@@ -38,20 +47,25 @@ public class UserController {
         );
     }
 
-    /*
+
     @PostMapping("/login")
     public ResponseEntity<DtoResponseApiLogIn> login(@Valid @RequestBody DtoLogin request){
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(data.getUsername(),data.getPassword()));
-        String token = jwtService.createToken(authentication.getName());
+        Authentication authenticate = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        );
+
+        List<String> roles = authenticate.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        String token = jwtService.createToken(request.username(), roles);
 
         return ResponseEntity.status(HttpStatus.OK).body(DtoResponseApiLogIn.builder()
+                .idCorrelation("")
                 .status(HttpStatus.OK.value())
-                .message("logged")
                 .token(token)
                 .build()
         );
-    }*/
-
+    }
 
     @PatchMapping("/{idUser}")
     public ResponseEntity<DtoResponseApi> updateUserUseCase(@PathVariable UUID idUser, @Valid @RequestBody DtoUserUpdate request){

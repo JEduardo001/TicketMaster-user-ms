@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserModel, UUID> {
@@ -17,5 +18,6 @@ public interface UserRepository extends JpaRepository<UserModel, UUID> {
     boolean existsByUsernameAndIdNot(String username,UUID id);
     @Query("SELECT u FROM UserModel u WHERE (:lastId IS NULL OR u.id > :lastId) ORDER BY u.id ASC")
     List<UserModel> findNextPage(@Param("lastId") UUID lastId, Pageable pageable);
+    Optional<UserModel> findByUsername(String username);
 
 }
