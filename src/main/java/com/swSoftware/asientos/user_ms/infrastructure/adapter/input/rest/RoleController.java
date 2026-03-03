@@ -7,6 +7,10 @@ import com.swSoftware.asientos.user_ms.application.usecase.role.CreateRoleUseCas
 import com.swSoftware.asientos.user_ms.application.usecase.role.GetAllRolesUseCase;
 import com.swSoftware.asientos.user_ms.application.usecase.role.GetRoleUseCase;
 import com.swSoftware.asientos.user_ms.application.usecase.role.UpdateRoleUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
@@ -21,6 +25,7 @@ import static com.swSoftware.asientos.user_ms.domain.common.HeaderConstants.CORR
 @RestController
 @RequestMapping("/api/v1/role")
 @AllArgsConstructor
+@Tag(name = "Role Management", description = "Endpoints for managing system security roles")
 public class RoleController {
 
     private final GetAllRolesUseCase getAllRolesUseCase;
@@ -28,6 +33,8 @@ public class RoleController {
     private final UpdateRoleUseCase updateRoleUseCase;
     private final GetRoleUseCase getRoleUseCase;
 
+    @Operation(summary = "Create a new role", description = "Registers a new security role in the system")
+    @ApiResponse(responseCode = "201", description = "Role created successfully")
     @PostMapping()
     public ResponseEntity<DtoResponseApi> createRole(@Valid @RequestBody DtoCreateRole request){
         return ResponseEntity.status(HttpStatus.CREATED).body(DtoResponseApi.builder()
@@ -39,8 +46,12 @@ public class RoleController {
         );
     }
 
+    @Operation(summary = "Partial update of a role", description = "Updates specific fields of an existing role by its ID")
+    @ApiResponse(responseCode = "200", description = "Role updated successfully")
     @PatchMapping("/{idRole}")
-    public ResponseEntity<DtoResponseApi> updateRole(@PathVariable Long idRole, @Valid @RequestBody DtoRoleUpdate request){
+    public ResponseEntity<DtoResponseApi> updateRole(
+            @Parameter(description = "ID of the role to update", example = "1") @PathVariable Long idRole,
+            @Valid @RequestBody DtoRoleUpdate request){
         return ResponseEntity.status(HttpStatus.OK).body(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
                 .idCorrelation(MDC.get(CORRELATION_KEY.toString()))
@@ -50,8 +61,11 @@ public class RoleController {
         );
     }
 
+    @Operation(summary = "Get role by ID", description = "Retrieves detailed information of a specific role")
+    @ApiResponse(responseCode = "200", description = "Role found")
     @GetMapping("/{idRole}")
-    public ResponseEntity<DtoResponseApi> getUser(@PathVariable Long idRole){
+    public ResponseEntity<DtoResponseApi> getUser(
+            @Parameter(description = "ID of the role to retrieve", example = "1") @PathVariable Long idRole){
         return ResponseEntity.status(HttpStatus.OK).body(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
                 .idCorrelation(MDC.get(CORRELATION_KEY.toString()))
@@ -61,10 +75,12 @@ public class RoleController {
         );
     }
 
+    @Operation(summary = "Get all roles with pagination", description = "Retrieves a paginated list of roles using cursor-based pagination")
+    @ApiResponse(responseCode = "200", description = "List of roles retrieved")
     @GetMapping
     public ResponseEntity<DtoResponseApi> getAllRole(
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "15") int limit
+            @Parameter(description = "Last role ID from the previous page for cursor pagination", example = "10") @RequestParam(required = false) Long lastId,
+            @Parameter(description = "Number of records per page", example = "15") @RequestParam(defaultValue = "15") int limit
     ) {
         return ResponseEntity.ok(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
@@ -73,5 +89,4 @@ public class RoleController {
                 .data(getAllRolesUseCase.execute(lastId, limit))
                 .build());
     }
-
 }

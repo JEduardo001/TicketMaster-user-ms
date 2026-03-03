@@ -13,6 +13,11 @@ import com.swSoftware.asientos.user_ms.application.usecase.user.UpdateUserUseCas
 import com.swSoftware.asientos.user_ms.domain.port.IUserService;
 import com.swSoftware.asientos.user_ms.domain.service.user.GeneralUserService;
 import com.swSoftware.asientos.user_ms.infrastructure.config.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
@@ -33,6 +38,7 @@ import static com.swSoftware.asientos.user_ms.domain.common.HeaderConstants.CORR
 @RestController
 @RequestMapping("/api/v1/user")
 @AllArgsConstructor
+@Tag(name = "User Management", description = "Endpoints for user authentication, registration, and profile management")
 public class UserController {
 
     private final RegisterUserUseCase registerUserCase;
@@ -43,7 +49,8 @@ public class UserController {
     private final IUserService iUserService;
     private final JwtService jwtService;
 
-
+    @Operation(summary = "Register a new user", description = "Creates a new user account in the system")
+    @ApiResponse(responseCode = "201", description = "User successfully registered")
     @PostMapping("/register")
     public ResponseEntity<DtoResponseApi> createUser(@Valid @RequestBody DtoUserRegister request){
         return ResponseEntity.status(HttpStatus.CREATED).body(DtoResponseApi.builder()
@@ -55,7 +62,9 @@ public class UserController {
         );
     }
 
-
+    @Operation(summary = "User login", description = "Authenticates user credentials and returns a JWT token")
+    @ApiResponse(responseCode = "200", description = "Authentication successful")
+    @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/login")
     public ResponseEntity<DtoResponseApiLogIn> login(@Valid @RequestBody DtoLogin request){
         Authentication authenticate = authenticationManager.authenticate(
@@ -75,8 +84,13 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "Update user", description = "Updates profile information for an existing user")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "User updated successfully")
     @PatchMapping("/{idUser}")
-    public ResponseEntity<DtoResponseApi> updateUserUseCase(@PathVariable UUID idUser, @Valid @RequestBody DtoUserUpdate request){
+    public ResponseEntity<DtoResponseApi> updateUserUseCase(
+            @Parameter(description = "UUID of the user") @PathVariable UUID idUser,
+            @Valid @RequestBody DtoUserUpdate request){
         return ResponseEntity.status(HttpStatus.OK).body(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
                 .idCorrelation(MDC.get(CORRELATION_KEY.toString()))
@@ -86,8 +100,11 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "Get user by ID", description = "Retrieves specific user details using their UUID")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "User data retrieved")
     @GetMapping("/{idUser}")
-    public ResponseEntity<DtoResponseApi> getUser(@PathVariable UUID idUser){
+    public ResponseEntity<DtoResponseApi> getUser(@Parameter(description = "UUID of the user") @PathVariable UUID idUser){
         return ResponseEntity.status(HttpStatus.OK).body(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
                 .idCorrelation(MDC.get(CORRELATION_KEY.toString()))
@@ -97,10 +114,13 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "List all users", description = "Returns a paginated list of all registered users")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "Users list retrieved")
     @GetMapping
     public ResponseEntity<DtoResponseApi> getAllUser(
-            @RequestParam(required = false) UUID lastId,
-            @RequestParam(defaultValue = "15") int limit
+            @Parameter(description = "UUID cursor for pagination") @RequestParam(required = false) UUID lastId,
+            @Parameter(description = "Page size limit") @RequestParam(defaultValue = "15") int limit
     ) {
         return ResponseEntity.ok(DtoResponseApi.builder()
                 .status(HttpStatus.OK.value())
@@ -110,6 +130,9 @@ public class UserController {
                 .build());
     }
 
+    @Operation(summary = "Verify user for reservation", description = "Internal validation to check if a user is eligible to reserve a seat")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "Verification successful")
     @PostMapping("/seat")
     public ResponseEntity<DtoResponseApi> verifyUserToReserveSeat(@Valid @RequestBody DtoSeatReserve request){
         iUserService.verifyUserToReserveSeat(request);
@@ -120,5 +143,4 @@ public class UserController {
                 .build()
         );
     }
-
 }
