@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .csrf(s -> s.disable())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/v1/user/register","/api/v1/user/login").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/v1/role").hasRole("ADMIN")
