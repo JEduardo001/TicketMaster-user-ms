@@ -1,0 +1,10 @@
+{
+   "type": "record",
+   "name": "UserCreatedEvent",
+   "namespace": "com.swSoftware.asientos.user_ms.infrastructure.adapter.output.kafka.avro",
+   "fields": [
+     { "name": "id", "type": "string" },
+     { "name": "username", "type": "string" },
+     { "name": "email", "type": "string" }
+   ]
+}

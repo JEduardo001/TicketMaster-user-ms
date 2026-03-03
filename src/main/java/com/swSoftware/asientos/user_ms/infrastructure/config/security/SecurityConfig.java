@@ -1,4 +1,4 @@
-package com.swSoftware.asientos.user_ms.infrastructure.config;
+package com.swSoftware.asientos.user_ms.infrastructure.config.security;
 
 import com.swSoftware.asientos.user_ms.infrastructure.config.filter.JwtFilter;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;

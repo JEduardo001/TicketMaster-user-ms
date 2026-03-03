@@ -4,13 +4,18 @@ import com.swSoftware.asientos.user_ms.application.dto.responseApi.DtoErrorRespo
 import com.swSoftware.asientos.user_ms.application.exception.ExceptionRoleNotFound;
 import com.swSoftware.asientos.user_ms.application.exception.ExceptionUserNotFound;
 import com.swSoftware.asientos.user_ms.domain.exception.handler.DomainExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 
+@Slf4j
 public abstract class ApplicationExceptionHandler extends DomainExceptionHandler {
+
+
     @ExceptionHandler(ExceptionUserNotFound.class)
     public ResponseEntity<DtoErrorResponseApi> handleNotFound(ExceptionUserNotFound ex) {
         return ResponseEntity.status(404).body(new DtoErrorResponseApi("NOT_FOUND_USER", 404, ""));

@@ -4,6 +4,7 @@ import com.swSoftware.asientos.user_ms.application.dto.responseApi.DtoErrorRespo
 import com.swSoftware.asientos.user_ms.application.exception.handler.ApplicationExceptionHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,6 +32,7 @@ public class GlobalExceptionHandler extends ApplicationExceptionHandler {
     public ResponseEntity<DtoErrorResponseApi> handleTechnical(Exception ex) {
         return ResponseEntity.status(500).body(new DtoErrorResponseApi("SERVER_ERROR", 500, ""));
     }
+
 
 
 }

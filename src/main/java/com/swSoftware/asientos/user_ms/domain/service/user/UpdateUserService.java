@@ -12,14 +12,18 @@ import com.swSoftware.asientos.user_ms.domain.status.StatusUser;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.mapper.userMapper.UserMapper;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.output.persistence.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import static com.swSoftware.asientos.user_ms.infrastructure.shared.LogMessages.*;
+
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UpdateUserService implements UpdateUserUseCase {
 
     private final UserRepository userRepository;
@@ -30,8 +34,14 @@ public class UpdateUserService implements UpdateUserUseCase {
     public DtoUser execute(UUID id, DtoUserUpdate request){
         UserModel user = userRepository.findById(id).orElseThrow(ExceptionUserNotFound::new);
 
-        if(userRepository.existsByEmailAndIdNot(request.email(),id)) throw new ExceptionEmailAlreadyInUse();
-        if(userRepository.existsByUsernameAndIdNot(request.username(),id)) throw new ExceptionEmailAlreadyInUse();
+        if(userRepository.existsByEmailAndIdNot(request.email(),id)){
+            log.warn(MESSAGE_USER_EMAIL_ALREADY_IN_USE.toString());
+            throw new ExceptionEmailAlreadyInUse();
+        }
+        if(userRepository.existsByUsernameAndIdNot(request.username(),id)){
+            log.warn(MESSAGE_USER_USERNAME_ALREADY_IN_USE.toString());
+            throw new ExceptionEmailAlreadyInUse();
+        }
 
         userMapper.toEntityToUpdate(request,user);
 
@@ -45,6 +55,8 @@ public class UpdateUserService implements UpdateUserUseCase {
         }
 
         UserModel s = userRepository.save(user);
+        log.info(MESSAGE_USER_UPDATED.toString());
+
         return userMapper.toDto(s);
     }
 }

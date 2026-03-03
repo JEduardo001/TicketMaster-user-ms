@@ -8,12 +8,16 @@ import com.swSoftware.asientos.user_ms.domain.model.RoleModel;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.mapper.RoleMapper.RoleMapper;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.output.persistence.RoleRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+import static com.swSoftware.asientos.user_ms.infrastructure.shared.LogMessages.*;
+
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CreateRoleService implements CreateRoleUseCase {
 
     private final RoleRepository roleRepository;
@@ -22,11 +26,15 @@ public class CreateRoleService implements CreateRoleUseCase {
     @Override
     public DtoRole execute(DtoCreateRole request){
         if(roleRepository.existsByName(request.name())){
+            log.warn(MESSAGE_NAME_ROLE_ALREADY_IN_USE.toString());
             throw new ExceptionNameRoleAlreadyInUse();
         }
 
         RoleModel role = roleMapper.toModelToCreate(request);
         role.setCreateAt(Instant.now());
-        return roleMapper.toDto(roleRepository.save(role));
+        roleRepository.save(role);
+        log.info(MESSAGE_ROLE_SAVED.toString());
+
+        return roleMapper.toDto(role);
     }
 }

@@ -10,14 +10,19 @@ import com.swSoftware.asientos.user_ms.domain.status.StatusRole;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.mapper.RoleMapper.RoleMapper;
 import com.swSoftware.asientos.user_ms.infrastructure.adapter.output.persistence.RoleRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.management.relation.RoleStatus;
 import java.time.Instant;
 import java.util.UUID;
 
+import static com.swSoftware.asientos.user_ms.infrastructure.shared.LogMessages.MESSAGE_NAME_ROLE_ALREADY_IN_USE;
+import static com.swSoftware.asientos.user_ms.infrastructure.shared.LogMessages.MESSAGE_ROLE_SAVED;
+
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UpdateRoleService implements UpdateRoleUseCase {
 
     private final RoleRepository roleRepository;
@@ -27,11 +32,16 @@ public class UpdateRoleService implements UpdateRoleUseCase {
     public DtoRole execute(Long id, DtoRoleUpdate request){
         RoleModel role = roleRepository.findById(id).orElseThrow(ExceptionRoleNotFound::new);
 
-        if(roleRepository.existsByNameAndIdNot(request.name(),id)) throw new ExceptionNameRoleAlreadyInUse();
+        if(roleRepository.existsByNameAndIdNot(request.name(),id)){
+            log.warn(MESSAGE_NAME_ROLE_ALREADY_IN_USE.toString());
+            throw new ExceptionNameRoleAlreadyInUse();
+        }
         roleMapper.toModelToUpdate(request,role);
 
         role.setDeleteAt(request.status().equals(StatusRole.DISABLED) ? Instant.now() : null);
+        roleRepository.save(role);
+        log.info(MESSAGE_NAME_ROLE_ALREADY_IN_USE.toString());
 
-        return roleMapper.toDto(roleRepository.save(role));
+        return roleMapper.toDto(role);
     }
 }
