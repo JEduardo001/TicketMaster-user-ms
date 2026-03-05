@@ -46,7 +46,7 @@ public class GeneralUserService implements IUserService {
             throw new ExceptionUserNotFound();
         };
 
-        iOutboxEventService.saveEvent(request,"dev.user-ms.reserve-seat.v1");
+        iOutboxEventService.saveEvent(request,"dev.user-ms.reserve-seat.v2");
         iEventProcessedService.saveEventProcessed(EventProcessedModel.builder()
                         .id(request.idCorrelation())
                         .createdAt(Instant.now())

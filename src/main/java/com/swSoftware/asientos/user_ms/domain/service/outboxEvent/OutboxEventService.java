@@ -1,5 +1,6 @@
 package com.swSoftware.asientos.user_ms.domain.service.outboxEvent;
 
+import com.app.events.ReserveEvent;
 import com.swSoftware.asientos.user_ms.domain.model.OutboxEventModel;
 import com.swSoftware.asientos.user_ms.domain.port.IOutboxEventService;
 import com.swSoftware.asientos.user_ms.domain.status.StatusEvent;
@@ -10,13 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 
 import static com.swSoftware.asientos.user_ms.domain.common.HeaderConstants.CORRELATION_KEY;
 import static com.swSoftware.asientos.user_ms.infrastructure.shared.LogMessages.*;
-import static org.springframework.kafka.support.KafkaHeaders.CORRELATION_ID;
 
 
 @Service
@@ -26,19 +26,28 @@ public class OutboxEventService<T> implements IOutboxEventService<T> {
 
     private final OutboxEventRepository outboxEventRepository;
     private final KafkaProducer kafkaProducer;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void saveEvent(T request,String nameTopic){
+        try {
+            String payloadJson = objectMapper.writeValueAsString(request);
 
-        outboxEventRepository.save(OutboxEventModel.builder()
-                .correlationId(MDC.get(CORRELATION_KEY.toString()))
-                .createAt(Instant.now())
-                .nameTopic(nameTopic)
-                .status(StatusEvent.PENDING)
-                .retryCount(0)
-                .payload(request.toString())
-                .build());
-        log.info(MESSAGE_EVENT_SAVED.toString());
+            outboxEventRepository.save(OutboxEventModel.builder()
+                    .correlationId(MDC.get(CORRELATION_KEY.toString()))
+                    .createAt(Instant.now())
+                    .nameTopic(nameTopic)
+                    .status(StatusEvent.PENDING)
+                    .retryCount(0)
+                    .payload(payloadJson)
+                    .build());
+
+            log.info(MESSAGE_EVENT_SAVED.toString());
+
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error(ERROR_CONVERTING_OBJECT_TO_JSON.toString(), e);
+            throw new RuntimeException(ERROR_CONVERTING_OBJECT_TO_JSON.toString(), e);
+        }
 
     }
 
@@ -48,19 +57,24 @@ public class OutboxEventService<T> implements IOutboxEventService<T> {
 
         for (OutboxEventModel e : events) {
             try {
+                ReserveEvent event = objectMapper.readValue(e.getPayload(), ReserveEvent.class);
 
-                kafkaProducer.send(e.getPayload(),e.getNameTopic(), e.getCorrelationId());
+                kafkaProducer.send(event,e.getNameTopic(), e.getCorrelationId());
                 e.setStatus(StatusEvent.SENT);
                 outboxEventRepository.save(e);
                 log.info(MESSAGE_SEND_EVENT.toString(), e.getId());
 
-            } catch (Exception ex) {
+            } catch (Exception ex){
 
                 e.setRetryCount(e.getRetryCount() + 1);
                 if (e.getRetryCount() > 20) {
-                    log.error(MESSAGE_ERROR_SEND_EVENT.toString(), ex);
-                    e.setStatus(StatusEvent.FAILED);
-                    kafkaProducer.publisFailedSendEventDlq(e.getPayload());
+                   try{
+                       ReserveEvent event = objectMapper.readValue(e.getPayload(), ReserveEvent.class);
+                       e.setStatus(StatusEvent.FAILED);
+                       kafkaProducer.publisFailedSendEventDlq(event);
+                   }catch (Exception exc){
+                       log.warn("{}: {}", MESSAGE_ERROR_SEND_EVENT, exc.getMessage());
+                   }
                 }
 
                 outboxEventRepository.save(e);
